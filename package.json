@@ -1,0 +1,27 @@
+{
+  "name": "orbio-research-desk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Self-funding crypto research desk agent for Orbio Build Week",
+  "type": "module",
+  "packageManager": "pnpm@10.4.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "brief": "tsx src/cli/brief.ts",
+    "fund:status": "tsx src/cli/fund-status.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.1",
+    "openai": "^5.20.0",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.1",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  },
+  "license": "MIT"
+}
