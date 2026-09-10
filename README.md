@@ -1,86 +1,149 @@
 # Orbio Research Desk
 
-Self-funding crypto research desk agent for Orbio Build Week (https://orbio.so/build).
+**Orbio Build Week entry** — a self-funding crypto research desk that keeps itself on Orbio rails.
 
-## What it does
+> Hold `$ORBIO` → earn / grant credits → **MCP manages keys** → **gateway spends** → daily structured brief → optional Telegram.
 
-1. Daily brief: OpenRouter web search to structured Zod output, optional Telegram (stdout fallback).
-2. Orbio MCP self-funding module: dry-run plus HTTP stub against https://www.orbio.so/api/mcp.
+Built for [Orbio Build Week](https://orbio.so/build). Repo: `xiaoyang111222/orbio-research-desk`.
 
-Happy path needs only the OpenRouter API key env var. Telegram is optional.
+---
 
-## Build Week context
+## Why this entry
 
-Orbio Build Week: 7 days, 10 winners. Builders claim an OpenRouter key through the Orbio MCP the same way an agent would.
-This repo ships a research desk (tokenised equities / crypto) plus claim-rotate rails.
+Orbio’s pitch is not “another chat UI”. It is **agents that fund themselves**.
 
-## How to run
+This desk does three things judges can verify in minutes:
 
-Install dependencies then run the brief and fund status entrypoints.
+1. **Self-funding loop (Orbio MCP)** — live `orbio_get_balance` / key status / claim / rotate against `https://www.orbio.so/api/mcp`
+2. **Spend on the gateway** — briefs run with an Orbio key at `https://api.orbio.so/api/v1` (OpenAI-compatible)
+3. **Ship a job** — daily research brief (Zod-structured) with Telegram delivery
 
-## OpenRouter and Orbio gateway
+It is deliberately small: readable TypeScript CLIs, no framework sprawl.
 
-Uses the openai SDK with an OpenAI-compatible base URL.
+---
 
-- Default: https://openrouter.ai/api/v1
-- Orbio gateway: https://api.orbio.so/api/v1
-
-Set OPENROUTER_BASE_URL to switch. Model ids stay OpenRouter-style.
-
-## Orbio MCP story
-
-Endpoint: https://www.orbio.so/api/mcp
-Docs: https://orbio.so/mcp
-
-Known tools: orbio_get_balance, orbio_create_key, orbio_claim_key, orbio_get_key_status, orbio_revoke_key.
-
-Connect example:
-claude mcp add --transport http --scope user orbio https://www.orbio.so/api/mcp
-
-This repo defaults to dry-run fixtures. For live tools/call, authenticate, set ORBIO_MCP_TOKEN, and set ORBIO_MCP_DRY_RUN=0. Do not commit tokens.
-
-## Telegram
-
-Optional. Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID. Otherwise the brief prints to stdout.
-
-## Layout
-
-- src/lib/openrouter.ts — openai SDK client and raw fetch
-- src/lib/telegram.ts — optional Telegram send
-- src/lib/orbio-mcp.ts — MCP dry-run and HTTP stub
-- src/cli/brief.ts — daily brief pipeline
-- src/cli/fund-status.ts — funding CLI
-
-
-## Daily brief (Build Week)
-
-1. Gather source notes (the Orbio gateway does **not** support OpenRouter server-side `web_search`).
-2. Write them to a file, then:
+## 60-second demo
 
 ```bash
+git clone https://github.com/xiaoyang111222/orbio-research-desk
+cd orbio-research-desk
+npm install --legacy-peer-deps
+cp .env.example .env.local
+# set OPENROUTER_API_KEY=sk-orbio-…   (from Orbio dashboard / MCP create_key)
+# set OPENROUTER_BASE_URL=https://api.orbio.so/api/v1
+
+npm run fund:status          # MCP balance + key (dry-run until ORBIO_MCP_TOKEN set)
+npm run fund:probe           # MCP endpoint probe
+
+# gather notes (gateway does not support OpenRouter server-side web_search)
 export RESEARCH_NOTES_FILE=./out/research-notes.md
 npm run brief -- "Robinhood Chain ORBIO"
-# or
-npm run daily -- "Robinhood Chain ORBIO"
 ```
 
-With `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` in `.env.local`, the brief is delivered to Telegram; otherwise it prints to stdout.
+Optional Telegram: set `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` — same `brief` command delivers there instead of stdout.
+
+---
+
+## Architecture
+
+```
+┌─────────────────┐     OAuth / MCP      ┌──────────────────┐
+│  Orbio balance  │◄────────────────────►│  orbio-mcp.ts    │
+│  + spend key    │   claim / rotate     │  fund:status CLI │
+└────────┬────────┘                      └──────────────────┘
+         │ sk-orbio-… @ api.orbio.so
+         ▼
+┌─────────────────┐   notes in → shape   ┌──────────────────┐
+│  brief.ts       │─────────────────────►│  Zod DailyBrief  │
+│  research desk  │                      │  → stdout / TG   │
+└─────────────────┘                      └──────────────────┘
+```
+
+| Piece | Path | Role |
+| --- | --- | --- |
+| Gateway client | `src/lib/openrouter.ts` | OpenAI SDK → Orbio / OpenRouter base URL |
+| MCP client | `src/lib/orbio-mcp.ts` | dry-run + live JSON-RPC tools/call |
+| Telegram | `src/lib/telegram.ts` | optional delivery |
+| Brief CLI | `src/cli/brief.ts` | notes → structured brief |
+| Fund CLI | `src/cli/fund-status.ts` | `--claim` / `--rotate` / `--probe` |
+| Daily wrapper | `src/cli/daily.ts` | fund snapshot + brief |
+
+### Honest constraint
+
+The **Orbio gateway rejects OpenRouter server-side tools** (`web_search`). Research notes are injected via `RESEARCH_NOTES` / `RESEARCH_NOTES_FILE` (operator, cron, or another agent), then the Orbio key does the expensive structured pass. That keeps spend on Orbio rails while staying compatible with the gateway.
+
+---
 
 ## Self-funding (Orbio MCP)
 
+Docs: https://orbio.so/mcp · Endpoint: `https://www.orbio.so/api/mcp`
+
+Tools used: `orbio_get_balance`, `orbio_get_key_status`, `orbio_claim_key`, `orbio_create_key`, `orbio_revoke_key`.
+
 ```bash
-npm run fund:status   # balance + key (dry-run by default)
-npm run fund:claim    # orbio_claim_key
-npm run fund:rotate   # orbio_create_key (rotate)
-npm run fund:probe    # HTTP probe of MCP endpoint
+npm run fund:status    # balance + key
+npm run fund:claim     # claim key
+npm run fund:rotate    # rotate / create key (retires previous)
+npm run fund:probe     # unauthenticated probe (expects 401)
 ```
 
-Live MCP: authenticate at https://orbio.so/mcp (or Claude Code `/mcp`), set `ORBIO_MCP_TOKEN`, and `ORBIO_MCP_DRY_RUN=0`. Until then dry-run fixtures stay on. The spend key for briefs is still `OPENROUTER_API_KEY` via `https://api.orbio.so/api/v1`.
+**Live mode:** complete MCP OAuth (scope `orbio:credits`), put the access token in `.env.local` as `ORBIO_MCP_TOKEN`, set `ORBIO_MCP_DRY_RUN=0`. Never commit tokens.
 
-## Chinese note
+**Spend key for briefs** is still `OPENROUTER_API_KEY` (an `sk-orbio-…` key) pointed at `https://api.orbio.so/api/v1`.
 
-自筹算力的加密研究台：OpenRouter 做每日简报（搜索 + 结构化输出），Telegram 可选；默认 Orbio MCP dry-run 演示 claim/rotate，配置 token 后可访问真实 MCP 端点。
+During Build Week we ran this live: MCP showed ~$100.59 spendable on the apply wallet, key active, briefs billed through the gateway.
+
+---
+
+## Daily brief
+
+```bash
+mkdir -p out
+# write sourced notes into out/research-notes.md
+export RESEARCH_NOTES_FILE=./out/research-notes.md
+npm run brief -- "Robinhood Chain tokenised equities ORBIO"
+# or
+npm run daily -- "Robinhood Chain tokenised equities ORBIO"
+```
+
+Output shape (Zod): `headline`, `summary`, `bullets`, `risks`, `sources[]`.
+
+In this Build Week setup, a routine gathers public sources each morning (09:00 Asia/Shanghai), runs `brief`, and sends to Telegram when configured.
+
+---
+
+## Environment
+
+See `.env.example`:
+
+| Var | Purpose |
+| --- | --- |
+| `OPENROUTER_API_KEY` | Orbio spend key (`sk-orbio-…`) |
+| `OPENROUTER_BASE_URL` | `https://api.orbio.so/api/v1` |
+| `ORBIO_MCP_TOKEN` | MCP OAuth access token (live) |
+| `ORBIO_MCP_DRY_RUN` | `1` default · `0` for live MCP |
+| `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | optional delivery |
+| `RESEARCH_NOTES_FILE` | path to research notes for `brief` |
+
+---
+
+## Build Week checklist
+
+- [x] Hold 1,000+ `$ORBIO` and apply (wallet + X)
+- [x] Claim Build Week inference / Orbio key
+- [x] Agent uses MCP + gateway (not a wrapped chatbot)
+- [x] Daily brief job + Telegram path
+- [ ] Repo public by day 7
+- [ ] Judges can clone and run the 60-second demo above
+
+---
+
+## 中文摘要
+
+Orbio Build Week 作品：**自充值加密研报台**。用 Orbio MCP 管余额/key，用 `api.orbio.so` 花额度出结构化日报，可推 Telegram。网关不支持服务端 `web_search`，所以素材外置、推理走 Orbio。小仓库、可复现、对准「agent 自己养自己」这条轨。
+
+---
 
 ## Licence
 
-MIT.
+MIT. Take anything.
