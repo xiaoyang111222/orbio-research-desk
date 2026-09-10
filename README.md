@@ -51,6 +51,32 @@ Optional. Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID. Otherwise the brief print
 - src/cli/brief.ts — daily brief pipeline
 - src/cli/fund-status.ts — funding CLI
 
+
+## Daily brief (Build Week)
+
+1. Gather source notes (the Orbio gateway does **not** support OpenRouter server-side `web_search`).
+2. Write them to a file, then:
+
+```bash
+export RESEARCH_NOTES_FILE=./out/research-notes.md
+npm run brief -- "Robinhood Chain ORBIO"
+# or
+npm run daily -- "Robinhood Chain ORBIO"
+```
+
+With `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` in `.env.local`, the brief is delivered to Telegram; otherwise it prints to stdout.
+
+## Self-funding (Orbio MCP)
+
+```bash
+npm run fund:status   # balance + key (dry-run by default)
+npm run fund:claim    # orbio_claim_key
+npm run fund:rotate   # orbio_create_key (rotate)
+npm run fund:probe    # HTTP probe of MCP endpoint
+```
+
+Live MCP: authenticate at https://orbio.so/mcp (or Claude Code `/mcp`), set `ORBIO_MCP_TOKEN`, and `ORBIO_MCP_DRY_RUN=0`. Until then dry-run fixtures stay on. The spend key for briefs is still `OPENROUTER_API_KEY` via `https://api.orbio.so/api/v1`.
+
 ## Chinese note
 
 自筹算力的加密研究台：OpenRouter 做每日简报（搜索 + 结构化输出），Telegram 可选；默认 Orbio MCP dry-run 演示 claim/rotate，配置 token 后可访问真实 MCP 端点。

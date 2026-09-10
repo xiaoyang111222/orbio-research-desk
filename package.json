@@ -11,7 +11,11 @@
   "scripts": {
     "brief": "tsx src/cli/brief.ts",
     "fund:status": "tsx src/cli/fund-status.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "fund:claim": "tsx src/cli/fund-status.ts --claim",
+    "fund:rotate": "tsx src/cli/fund-status.ts --rotate",
+    "fund:probe": "tsx src/cli/fund-status.ts --probe",
+    "daily": "tsx src/cli/daily.ts"
   },
   "dependencies": {
     "dotenv": "^17.2.1",
