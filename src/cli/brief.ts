@@ -22,17 +22,32 @@ const topic =
   'tokenised equities crypto markets Robinhood Chain'
 
 async function research(topicText: string): Promise<string> {
+  // Orbio gateway rejects OpenRouter server-side tools (web_search). Prefer
+  // injected notes, then a plain model pass (no server tools).
+  const injected = process.env.RESEARCH_NOTES?.trim()
+  if (injected) return injected
+
+  const notesFile = process.env.RESEARCH_NOTES_FILE?.trim()
+  if (notesFile) {
+    const { readFile } = await import('node:fs/promises')
+    return (await readFile(notesFile, 'utf8')).trim()
+  }
+
   const res = await openrouterFetch('/chat/completions', {
     method: 'POST',
     body: JSON.stringify({
       model: DEFAULT_MODEL,
       messages: [
         {
+          role: 'system',
+          content:
+            'You are a crypto research desk. Summarize the last 24-48h for the topic. Only cite URLs you are confident exist; if unsure, omit. Be concrete.',
+        },
+        {
           role: 'user',
-          content: `You are a crypto research desk. Research the last 24-48 hours of news on: ${topicText}. Keep every URL you use. Prefer primary sources.`,
+          content: `Topic: ${topicText}\n\nProduce research notes with named facts, numbers, and source URLs when known.`,
         },
       ],
-      tools: [{ type: 'openrouter:web_search' }],
     }),
   })
   if (!res.ok) throw new Error(`research ${res.status}: ${await res.text()}`)
