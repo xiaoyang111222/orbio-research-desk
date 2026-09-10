@@ -214,28 +214,47 @@ function num(v: unknown): number | null {
   return null
 }
 
-function normalizeBalance(raw: unknown): FundStatus['balance'] {
+function unwrapMcp(raw: unknown): Record<string, unknown> {
   const obj = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  const structured = obj.structuredContent
+  if (structured && typeof structured === 'object') return structured as Record<string, unknown>
+  return obj
+}
+
+function normalizeBalance(raw: unknown): FundStatus['balance'] {
+  const obj = unwrapMcp(raw)
+  const bal = obj.balance
+  const balObj = bal && typeof bal === 'object' ? (bal as Record<string, unknown>) : null
   const available =
-    num(obj.availableUsd) ?? num(obj.available) ?? num(obj.balance) ?? num(obj.credits) ?? 0
+    num(obj.availableUsd) ??
+    num(obj.available) ??
+    (balObj ? num(balObj.usd) : null) ??
+    num(obj.balance) ??
+    num(obj.credits) ??
+    0
   const pending = num(obj.pendingUsd) ?? num(obj.pending) ?? 0
+  const content = (raw && typeof raw === 'object' ? (raw as Record<string, unknown>).content : null) as
+    | Array<{ type?: string; text?: string }>
+    | null
+  const noteText = content?.find((c) => c?.type === 'text' && c.text)?.text
   return {
     availableUsd: available,
     pendingUsd: pending,
-    note: String(obj.note ?? 'Live balance from Orbio MCP.'),
+    note: String(noteText ?? obj.note ?? 'Live balance from Orbio MCP.'),
   }
 }
 
 function normalizeKey(raw: unknown, localKey: string | undefined): FundStatus['key'] {
-  const obj = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
-  const statusRaw = String(obj.status ?? 'unknown')
+  const obj = unwrapMcp(raw)
+  const statusRaw = String(obj.status ?? (obj.hasKey ? 'active' : 'unknown'))
   const allowed = ['unknown', 'active', 'spent', 'revoked', 'dry-run'] as const
   const status = (allowed as readonly string[]).includes(statusRaw)
     ? (statusRaw as FundStatus['key']['status'])
     : 'unknown'
+  const prefix = typeof obj.prefix === 'string' ? obj.prefix : null
   return {
-    present: Boolean(localKey) || Boolean(obj.masked ?? obj.key),
-    masked: maskKey(localKey) ?? (typeof obj.masked === 'string' ? obj.masked : null),
+    present: Boolean(localKey) || Boolean(obj.hasKey) || Boolean(obj.masked ?? obj.key ?? prefix),
+    masked: maskKey(localKey) ?? (typeof obj.masked === 'string' ? obj.masked : prefix),
     status,
     spendUsd: num(obj.spendUsd) ?? num(obj.spent) ?? null,
     limitUsd: num(obj.limitUsd) ?? num(obj.limit) ?? null,
