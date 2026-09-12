@@ -22,6 +22,8 @@ It is deliberately small: readable TypeScript CLIs, no framework sprawl.
 
 ---
 
+Full walkthrough: [DEMO.md](DEMO.md).
+
 ## 60-second demo
 
 ```bash

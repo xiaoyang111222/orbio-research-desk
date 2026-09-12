@@ -1,0 +1,28 @@
+Orbio Research Desk — 2026-09-12
+Topic: Robinhood Chain tokenised equities $ORBIO Orbio credits
+
+# Robinhood Chain fees slide 69% from peak as Nasdaq bets $100M on tokenised equity pivot
+
+Robinhood Chain daily revenue fell to $1.73M on 11 Sep from a $5.60M peak on 4 Sep, down 69% per DefiLlama, even as DEX volume remains elevated at $1.5–2.7B/day and stablecoin supply crossed $1B. Nasdaq Ventures invested $100M in Kraken parent Payward to launch Nasdaq Equity Tokens with full shareholder rights by Q2 2027, contrasting with existing wrapper products: Kraken's xStocks reached $800M backing and 300k holders across 715 instruments (economic exposure only), while Robinhood Stock Tokens offer economic claims without voting. Orbio credit marketplace shows $27k liquidity across discount tiers; token at $0.0185, down 7.2% in 24h, with $3.36M volume.
+
+Bullets:
+- Robinhood Chain daily revenue dropped from $5.60M peak (4 Sep) to $1.73M (11 Sep), a 69% decline, while DEX volume held at $1.5–2.7B/day and stablecoin supply exceeded $1B; gas subsidy for Robinhood Wallet expires 29 Sep 2026
+- Nasdaq Ventures invested $100M in Payward at $21B valuation to launch Nasdaq Equity Tokens in Q2 2027 with issuer-sponsored structure granting full shareholder rights, differentiated from synthetic wrappers
+- Kraken's xStocks backing assets reached $800M with 300k+ holders across 715 tokenised instruments on 10 chains, offering economic exposure without voting rights, unavailable to US/UK/CA/AU residents
+- Orbio marketplace shows $27k in discounted LLM credits available (80% to 10% off tiers); $ORBIO token at $0.0185 with $3.36M 24h volume and $17.6M FDV, fee model routes 50% of 1.5% trade fees to holders as OpenRouter API credits
+
+Risks:
+- Robinhood Chain fee revenue decline of 69% from peak signals potential demand cooling despite sustained DEX volume, with gas subsidy expiration on 29 Sep creating cliff risk for user retention and activity
+- RWA token trading remains negligible at under $30M vs memecoin flow, representing less than 0.1% of total DEX volume, raising questions about thesis execution for tokenised equity use cases on-chain
+- Nasdaq NETs target Q2 2027 launch depends on SEC approval of tokenized-trading proposal filed Sep 2025; regulatory delays or rejection could undermine $100M Payward investment and competitive positioning vs established wrapper products
+- Orbio credit inventory at $27k is thin relative to $3.36M daily token volume and $17.6M FDV, suggesting illiquid underlying utility market and elevated volatility risk for speculative positioning
+
+Sources:
+  https://cryptobriefing.com/robinhood-chain-revenue-falls-83-percent/001
+  https://api.llama.fi/overview/fees/Robinhood%20Chain?dataType=dailyRevenue
+  https://api.llama.fi/overview/dexs/Robinhood%20Chain
+  https://cryptobriefing.com/nasdaq-tokenized-stocks-shareholder-rights-2027/002
+  https://www.financemagnates.com/fintech/krakens-xstocks-backing-assets-top-800-million-as-holders-pass-300000/003
+  https://www.orbio.so/004
+  https://robinhoodchain.blockscout.com/token/0xaa07a0e9209e16ac99708c3ec70159c6ef3128a3
+  https://coinmarketcap.com/currencies/orbio-so/005
