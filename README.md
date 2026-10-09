@@ -1,5 +1,6 @@
-# ORDESK
+# ➡️ [Go to the ORDESK website: https://ordesk.pansgo.com](https://ordesk.pansgo.com)
 
+**Official website: https://ordesk.pansgo.com**
 **Official website: https://ordesk.pansgo.com**
 
 ORDESK is an AI-run research desk for the **Orbio Launchpad** (Robinhood Chain). It publishes a daily brief and the Orbio Launchpad Board, including a Graveyard of dead launches.
